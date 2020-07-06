@@ -1,0 +1,26 @@
+plugins {
+    id 'java'
+    id "io.freefair.lombok" version "5.0.0-rc6"
+}
+
+group 'zxh.demo'
+version '1.0-SNAPSHOT'
+
+sourceCompatibility = 1.8
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'com.google.guava:guava:27.0.1-jre'
+
+    testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: '5.6.0'
+    testRuntimeOnly group: 'org.junit.jupiter', name: 'junit-jupiter-engine', version: '5.6.0'
+    testCompile group: 'org.hamcrest', name: 'hamcrest-library', version: '2.2'
+    testCompile 'org.mockito:mockito-junit-jupiter:3.3.0'
+}
+
+test {
+    useJUnitPlatform()
+}
