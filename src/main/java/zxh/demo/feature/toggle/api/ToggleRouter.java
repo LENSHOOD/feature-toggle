@@ -7,4 +7,6 @@ package zxh.demo.feature.toggle.api;
 */
 public interface ToggleRouter {
     boolean includeOrderCancellationInEmail();
+
+    boolean canExperienceGiftVip(int userId);
 }

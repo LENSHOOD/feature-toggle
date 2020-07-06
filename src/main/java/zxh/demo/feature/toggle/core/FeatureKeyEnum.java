@@ -6,5 +6,7 @@ package zxh.demo.feature.toggle.core;
  * @date 2020/7/6
 */
 public enum FeatureKeyEnum {
-    NEXT_GEN_ECOMM;
+    NEXT_GEN_ECOMM,
+    GIFT_VIP_CAMPAIGN
+    ;
 }

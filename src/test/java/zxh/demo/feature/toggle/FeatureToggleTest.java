@@ -1,7 +1,8 @@
 package zxh.demo.feature.toggle;
 
-import org.hamcrest.MatcherAssert;
-import org.hamcrest.Matchers;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import zxh.demo.feature.toggle.api.ToggleRouter;
@@ -9,10 +10,11 @@ import zxh.demo.feature.toggle.api.ToggleRouterFactory;
 import zxh.demo.feature.toggle.core.*;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Collections;
 import java.util.Objects;
 import java.util.Properties;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 class FeatureToggleTest {
     class FakeInvoiceEmailer {
@@ -37,6 +39,22 @@ class FeatureToggleTest {
         }
     }
 
+    class FakeVipSender {
+        private final ToggleRouter router;
+
+        FakeVipSender(ToggleRouter router) {
+            this.router = router;
+        }
+
+        public String tryLucky(int userId) {
+            if (router.canExperienceGiftVip(userId)) {
+                return "Win a VIP!";
+            }
+
+            return "Not so lucky, pity...";
+        }
+    }
+
     class TestResourceConfigExtractor implements ToggleConfigExtractor {
 
         @Override
@@ -50,11 +68,10 @@ class FeatureToggleTest {
 
                 Properties properties = new Properties();
                 properties.load(resourceStream);
-                String isNextGenEcomm = properties.getProperty(FeatureKeyEnum.NEXT_GEN_ECOMM.name());
-                return Collections.singleton(new FeatureState(
-                        FeatureKeyEnum.NEXT_GEN_ECOMM,
-                        Boolean.parseBoolean(isNextGenEcomm),
-                        getPriority()));
+                return Stream.of(FeatureKeyEnum.values()).map(key -> new FeatureState(
+                        key,
+                        Boolean.parseBoolean(properties.getProperty(key.name())),
+                        getPriority())).collect(Collectors.toSet());
             } catch (IOException e) {
                 throw new IllegalArgumentException(e.getMessage());
             }
@@ -81,7 +98,7 @@ class FeatureToggleTest {
         String email = emailer.generateInvoiceEmail();
 
         // then
-        MatcherAssert.assertThat(email, Matchers.is("fake-basic-email can cancel."));
+        assertThat(email, is("fake-basic-email can cancel."));
     }
 
     @Test
@@ -94,6 +111,30 @@ class FeatureToggleTest {
         String email = emailer.generateInvoiceEmail();
 
         // then
-        MatcherAssert.assertThat(email, Matchers.is("fake-basic-email"));
+        assertThat(email, is("fake-basic-email"));
+    }
+
+    @Test
+    void should_choose_current_user_to_get_gift_vip() {
+        // given
+        FakeVipSender sender = new FakeVipSender(ToggleRouterFactory.create());
+
+        // when
+        String result = sender.tryLucky(100);
+
+        // then
+        assertThat(result, is("Win a VIP!"));
+    }
+
+    @Test
+    void should_not_choose_current_user_to_get_gift_vip() {
+        // given
+        FakeVipSender sender = new FakeVipSender(ToggleRouterFactory.create());
+
+        // when
+        String result = sender.tryLucky(20);
+
+        // then
+        assertThat(result, is("Not so lucky, pity..."));
     }
 }

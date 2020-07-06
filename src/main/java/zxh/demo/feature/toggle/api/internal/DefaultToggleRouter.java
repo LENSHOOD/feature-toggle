@@ -14,4 +14,14 @@ public class DefaultToggleRouter implements ToggleRouter {
     public boolean includeOrderCancellationInEmail() {
         return ToggleConfiguration.isEnabled(FeatureKeyEnum.NEXT_GEN_ECOMM);
     }
+
+    @Override
+    public boolean canExperienceGiftVip(int userId) {
+        boolean switchOn = ToggleConfiguration.isEnabled(FeatureKeyEnum.GIFT_VIP_CAMPAIGN);
+        return switchOn && randomChooseUser(userId);
+    }
+
+    boolean randomChooseUser(int userId) {
+        return userId % 100 == 0;
+    }
 }
